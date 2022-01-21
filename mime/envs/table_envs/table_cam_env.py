@@ -21,7 +21,7 @@ class TableCamEnv(TableEnv):
         scene,
         view_rand="",
         gui_resolution=(640, 480),
-        cam_resolution=(512, 288),
+        cam_resolution=(640, 360),
         num_cameras=1,
         crop_size=224,
     ):
