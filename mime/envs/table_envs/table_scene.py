@@ -87,6 +87,14 @@ class TableScene(Scene):
         robot = self._robot
         cam_params = self.cam_params
 
+        target = list(cam_params["target"])
+        target[0] = -0.4
+        DebugCamera.view_at(
+            target=tuple(target),
+            distance=0.5,
+            yaw=90,
+            pitch=-40,
+        )
         # VRCamera.move_to(pos=(1.0, 0.0, -0.77), orn=(0, 0, np.pi / 2))
 
         # reset robot state
