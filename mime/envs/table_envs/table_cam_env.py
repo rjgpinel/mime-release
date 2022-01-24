@@ -121,9 +121,10 @@ class TableCamEnv(TableEnv):
                         )
 
                         if key == "rotation":
-                            rot_quat = ext_params[key]
-                            rot_euler = pb.getEulerFromQuaternion(rot_quat)
-                            ext_rand_params[key] = rot_euler + rand_offset
+                            cam_orn = ext_params[key]
+                            if len(cam_orn) == 4:
+                                cam_orn = pb.getEulerFromQuaternion(cam_orn)
+                            ext_rand_params[key] = cam_orn + rand_offset
                         else:
                             ext_rand_params[key] = ext_params[key] + rand_offset
 
