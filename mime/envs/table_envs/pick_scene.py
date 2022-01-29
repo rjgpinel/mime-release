@@ -61,21 +61,24 @@ class PickScene(TableScene):
 
         if self._target is not None:
             self._target.remove()
-
-        gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        if gripper_pose is None:
+            gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        else:
+            gripper_pos, gripper_orn = gripper_pose
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
         # load cube, set to random size and random position
         cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
-        cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
-        cube.color = cube_color
         self._cube_size = cube_size
         self._target = cube
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
         if self._domain_rand:
             modder.randomize_object_color(np_random, cube, cube_color)
+        else:
+            cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
+            cube.color = cube_color
 
     def script(self):
         """
