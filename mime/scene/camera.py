@@ -138,10 +138,10 @@ class Camera(object):
             **self._render_options,
         )
 
-         # if not isinstance(rgba, np.ndarray):
-         #     rgba = np.array(rgba, dtype=np.uint8).reshape((h, w, 4))
-         #     depth = np.array(depth, dtype=np.float32).reshape((h, w))
-         #     mask = np.array(mask, dtype=np.uint8).reshape((h, w))
+        if not isinstance(rgba, np.ndarray):
+            rgba = np.array(rgba, dtype=np.uint8).reshape((h, w, 4))
+            depth = np.array(depth, dtype=np.float32).reshape((h, w))
+            mask = np.array(mask, dtype=np.uint8).reshape((h, w))
 
         self._rgba, self._depth, self._mask = rgba, depth, mask
 
