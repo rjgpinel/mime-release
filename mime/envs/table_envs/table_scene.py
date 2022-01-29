@@ -28,6 +28,11 @@ BACKGROUND_TEXTURES_PATH = assets_path() / "textures" / "background"
 class TableScene(Scene):
     """Base scene for tasks with robot on table"""
 
+    ROBOT_LABEL = 0
+    TABLE_LABEL = 1
+    BACKGROUND_LABEL = 2
+    OBJECT_LABEL = 3
+
     def __init__(
         self,
         robot_type="UR5",
@@ -162,6 +167,12 @@ class TableScene(Scene):
     def _load(self, np_random):
         """
         Load robot, table and a camera for recording videos
+        WARNING: mask labels of objects are defined according to the order they are loaded in
+        ROBOT_LABEL = 0
+        TABLE_LABEL = 1
+        BACKGROUND_LABEL = 2
+        OBJECT_LABEL = 3
+        assumes the order of loading is: robot, table, background, objects
         """
 
         if self._domain_rand:

@@ -57,6 +57,6 @@ class TowerCamEnv(TableCamEnv):
         for cam_name, cameras_list in self.cameras.items():
             for i, camera_info in enumerate(cameras_list):
                 mask = obs[f"mask_{cam_name}{i}"]
-                mask[mask >= self.OBJECT_LABEL] = self.OBJECT_LABEL
+                mask[mask >= self.scene.OBJECT_LABEL] = self.scene.OBJECT_LABEL
 
         return obs
