@@ -16,6 +16,11 @@ from ...scene import Camera
 class TableCamEnv(TableEnv):
     """Base environment for tasks with camera observation"""
 
+    ROBOT_LABEL = 0
+    TABLE_LABEL = 1
+    BACKGROUND_LABEL = 2
+    OBJECT_LABEL = 3
+
     def __init__(
         self,
         scene,
