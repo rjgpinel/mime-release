@@ -12,11 +12,11 @@ class TowerScene(TableScene):
         self._modder = TableModder(self)
 
         self._count_success = 0
-        self._num_cubes = 2
         self._cubes = []
         self._cubes_size = []
 
-        self._cube_size_range = {"low": 0.04, "high": 0.06}
+        self._num_cubes = 2
+        self._cube_size_range = {"low": 0.03, "high": 0.085}
 
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
@@ -37,9 +37,6 @@ class TowerScene(TableScene):
 
         low, high = self._object_workspace
         low_cubes, high_cubes = np.array(low.copy()), np.array(high.copy())
-        low_cubes[:2] += self._cube_size_range["high"] / 2
-        high_cubes[:2] -= self._cube_size_range["high"] / 2
-
         for cube in self._cubes:
             cube.remove()
 
@@ -51,12 +48,12 @@ class TowerScene(TableScene):
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
-        # load cubes
         num_cubes = self._num_cubes
         cubes = []
         cubes_size = []
         for i in range(num_cubes):
             cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
+            # cube.dynamics.lateral_friction = 10
             cubes.append(cube)
             cubes_size.append(cube_size)
         # sort cubes per decreasing size
@@ -66,6 +63,9 @@ class TowerScene(TableScene):
             self._cubes.append(cubes[idx])
             self._cubes_size.append(cubes_size[idx])
         self._cubes_size = np.array(self._cubes_size)
+
+        low_cubes[:2] += self._cubes_size[0] / 2
+        high_cubes[:2] -= self._cubes_size[0] / 2
 
         # move cubes to a random position and change color
         cubes = []
