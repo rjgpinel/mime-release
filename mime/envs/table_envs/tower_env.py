@@ -39,11 +39,22 @@ class TowerCamEnv(TableCamEnv):
     """Tower environment, camera observation, linear tool control"""
 
     def __init__(
-        self, view_rand, gui_resolution, cam_resolution, num_cameras, **kwargs
+        self,
+        view_rand,
+        gui_resolution,
+        cam_resolution,
+        crop_size,
+        num_cameras,
+        **kwargs,
     ):
         scene = TowerScene(**kwargs)
         super(TowerCamEnv, self).__init__(
-            scene, view_rand, gui_resolution, cam_resolution, num_cameras
+            scene=scene,
+            view_rand=view_rand,
+            gui_resolution=gui_resolution,
+            cam_resolution=cam_resolution,
+            crop_size=crop_size,
+            num_cameras=num_cameras,
         )
 
         self.action_space = self._make_dict_space(
