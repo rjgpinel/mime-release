@@ -15,7 +15,7 @@ environments = {
     "Pick": dict(max_episode_steps=200),
     "Rope": dict(max_episode_steps=400),
     "Push": dict(max_episode_steps=1000),
-    "Tower": dict(max_episode_steps=1500),
+    "Tower": dict(max_episode_steps=600),
     "Pour": dict(max_episode_steps=400),
     "Bowl": dict(max_episode_steps=600),
 }
