@@ -61,22 +61,22 @@ class TowerScene(TableScene):
 
         # sort cubes per decreasing size
         # biggest cube first
-        idxs_sort = np.argsort(-np.array(cubes_size))
-        for idx in idxs_sort:
-            self._cubes.append(cubes[idx])
-            self._cubes_size.append(cubes_size[idx])
-        self._cubes_size = np.array(self._cubes_size)
+        # idxs_sort = np.argsort(-np.array(cubes_size))
+        # for idx in idxs_sort:
+        #     self._cubes.append(cubes[idx])
+        #     self._cubes_size.append(cubes_size[idx])
+        self._cubes = cubes
+        self._cubes_size = np.array(cubes_size)
 
         low_cubes[:2] += self._cubes_size[0] / 2
         high_cubes[:2] -= self._cubes_size[0] / 2
 
         # move cubes to a random position and change color
-        cubes = []
         aabbs = []
         colors = np.array(
             [
                 [11, 124, 96, 255],
-                [255, 0, 0, 255],
+                [255, 140, 20, 255],
             ],
             dtype=float,
         )
@@ -86,8 +86,8 @@ class TowerScene(TableScene):
                 cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
             cube.color = color
-            if self._domain_rand:
-                modder.randomize_object_color(np_random, cube, color)
+            # if self._domain_rand:
+            modder.randomize_object_color(np_random, cube, color)
 
     def script(self):
         arm = self.robot.arm
