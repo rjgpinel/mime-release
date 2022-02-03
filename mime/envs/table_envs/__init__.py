@@ -6,9 +6,9 @@ from mime.envs.table_envs.table_modder import *
 from mime.envs.table_envs.pick_env import *
 from mime.envs.table_envs.push_env import *
 from mime.envs.table_envs.tower_env import *
-from mime.envs.table_envs.pour_env import *
-from mime.envs.table_envs.bowl_env import *
-from mime.envs.table_envs.rope_env import *
+# from mime.envs.table_envs.pour_env import *
+# from mime.envs.table_envs.bowl_env import *
+# from mime.envs.table_envs.rope_env import *
 
 
 environments = {
