@@ -73,6 +73,9 @@ class TowerScene(TableScene):
         low_cubes[:2] += self._cubes_size[0] / 2
         high_cubes[:2] -= self._cubes_size[0] / 2
 
+        low_cubes[:2] += self._cubes_size[0] / 2
+        high_cubes[:2] -= self._cubes_size[0] / 2
+
         # move cubes to a random position and change color
         aabbs = []
         colors = np.array(
