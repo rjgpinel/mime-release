@@ -40,6 +40,7 @@ env_combinations = list(
 
 cam_resolution = (640, 360)
 gui_resolution = (1280, 720)
+crop_size = 224
 
 for env, kwargs in environments.items():
     orig_env_horizon = kwargs["max_episode_steps"]
