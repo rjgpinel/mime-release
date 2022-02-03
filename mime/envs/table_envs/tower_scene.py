@@ -73,13 +73,18 @@ class TowerScene(TableScene):
         # move cubes to a random position and change color
         cubes = []
         aabbs = []
-        for cube in self._cubes:
+        colors = np.array(
+            [
+                [11, 124, 96, 255],
+                [255, 0, 0, 255],
+            ],
+            dtype=float,
+        )
+        colors = colors / 255
+        for cube, color in zip(self._cubes, colors):
             aabbs, _ = sample_without_overlap(
                 cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
-
-            color = np.array([11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1])
-            color[3] = 1
             cube.color = color
             if self._domain_rand:
                 modder.randomize_object_color(np_random, cube, color)
