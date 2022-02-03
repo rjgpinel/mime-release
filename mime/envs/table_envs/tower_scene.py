@@ -39,6 +39,7 @@ class TowerScene(TableScene):
 
         low, high = self._object_workspace
         low_cubes, high_cubes = np.array(low.copy()), np.array(high.copy())
+
         for cube in self._cubes:
             cube.remove()
 
@@ -69,12 +70,8 @@ class TowerScene(TableScene):
         # use color information to deduce the order
         self._cubes = cubes
         self._cubes_size = np.array(cubes_size)
-
-        low_cubes[:2] += self._cubes_size[0] / 2
-        high_cubes[:2] -= self._cubes_size[0] / 2
-
-        low_cubes[:2] += self._cubes_size[0] / 2
-        high_cubes[:2] -= self._cubes_size[0] / 2
+        low_cubes[:2] += self._cubes_size[0]
+        high_cubes[:2] -= self._cubes_size[0]
 
         # move cubes to a random position and change color
         aabbs = []
@@ -91,8 +88,8 @@ class TowerScene(TableScene):
                 cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
             cube.color = color
-            if self._domain_rand:
-                modder.randomize_object_color(np_random, cube, color)
+            # if self._domain_rand:
+            modder.randomize_object_color(np_random, cube, color)
 
     def script(self):
         arm = self.robot.arm
