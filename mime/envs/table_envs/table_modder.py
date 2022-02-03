@@ -1,4 +1,5 @@
 import numpy as np
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 from ...scene import Body
 
@@ -48,7 +49,14 @@ class TableModder(object):
         )
 
     def randomize_object_color(self, np_random, obj, obj_color):
-        obj.color = obj_color + np.append(np_random.randn(3) * 0.02, 0)
+        r, g, b = obj_color[:3]
+        h, s, v = rgb_to_hsv(r, g, b)
+        h = h + np.random.uniform(low=-0.1, high=0.1)
+        if h < 0:
+            h = 1 + h
+        s, v = np_random.uniform(low=0.5, high=1, size=(2,))
+        r, g, b = hsv_to_rgb(h, s, v)
+        obj.color = np.array([r, g, b, 1.0])
 
     def load_cage(self, np_random):
         """
