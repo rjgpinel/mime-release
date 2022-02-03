@@ -65,6 +65,8 @@ class TowerScene(TableScene):
         # for idx in idxs_sort:
         #     self._cubes.append(cubes[idx])
         #     self._cubes_size.append(cubes_size[idx])
+        # always stack the cubes in the same order
+        # use color information to deduce the order
         self._cubes = cubes
         self._cubes_size = np.array(cubes_size)
 
