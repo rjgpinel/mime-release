@@ -39,14 +39,8 @@ class TableCamEnv(TableEnv):
 
         self.cameras = {}
 
-        self.cam_list = []
-
         camera_cfgs = scene.camera_cfgs
-        self.cam_list = [
-            f"{cam_info['name']}{i}"
-            for cam_info in camera_cfgs
-            for i in range(num_cameras)
-        ]
+        self.cam_list = [f"{cam_info['name']}" for cam_info in camera_cfgs]
 
         self.joints_pos = {}
 

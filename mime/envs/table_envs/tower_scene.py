@@ -17,7 +17,7 @@ class TowerScene(TableScene):
 
         self._cubes_size_range = [
             {"low": 0.03, "high": 0.055},
-            {"low": 0.06, "high": 0.09},
+            {"low": 0.06, "high": 0.08},
         ]
 
         v, w = self._max_tool_velocity
@@ -75,7 +75,7 @@ class TowerScene(TableScene):
         aabbs = []
         for cube in self._cubes:
             aabbs, _ = sample_without_overlap(
-                cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.05
+                cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
 
             color = np.array([11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1])
