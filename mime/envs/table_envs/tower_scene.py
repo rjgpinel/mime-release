@@ -15,8 +15,10 @@ class TowerScene(TableScene):
         self._cubes = []
         self._cubes_size = []
 
-        self._num_cubes = 2
-        self._cube_size_range = {"low": 0.03, "high": 0.085}
+        self._cubes_size_range = [
+            {"low": 0.03, "high": 0.055},
+            {"low": 0.06, "high": 0.09},
+        ]
 
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
@@ -48,14 +50,15 @@ class TowerScene(TableScene):
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
-        num_cubes = self._num_cubes
+        # load cubes
         cubes = []
         cubes_size = []
-        for i in range(num_cubes):
-            cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
-            # cube.dynamics.lateral_friction = 10
+        for i in range(len(self._cubes_size_range)):
+            cube_size_range = self._cubes_size_range[i]
+            cube, cube_size = modder.load_mesh("cube", cube_size_range, np_random)
             cubes.append(cube)
             cubes_size.append(cube_size)
+
         # sort cubes per decreasing size
         # biggest cube first
         idxs_sort = np.argsort(-np.array(cubes_size))
@@ -91,7 +94,7 @@ class TowerScene(TableScene):
 
         sc = Script(self)
         moves = []
-        z_offset = 0.01
+        z_offset = 0.02
         for pick_pos, cube_size in zip(cubes_pos[1:], cubes_size[:-1]):
             height += cube_size
             moves += [
