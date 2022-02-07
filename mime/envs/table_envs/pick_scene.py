@@ -20,7 +20,7 @@ class PickScene(TableScene):
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
 
-        self._cube_size_range = {"low": 0.03, "high": 0.07}
+        self._cube_size_range = {"low": 0.04, "high": 0.07}
 
     def load(self, np_random):
         super(PickScene, self).load(np_random)
@@ -51,11 +51,6 @@ class PickScene(TableScene):
         low, high = self._object_workspace
         low, high = np.array(low.copy()), np.array(high.copy())
 
-        if cube_pose is None:
-            cube_pos = np_random.uniform(low=low, high=high)
-        else:
-            cube_pos, cube_ori = cube_pose
-
         if self._target is not None:
             self._target.remove()
         if gripper_pose is None:
@@ -70,6 +65,15 @@ class PickScene(TableScene):
         cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
         self._cube_size = cube_size
         self._target = cube
+
+        low[:2] += self._cube_size / 2
+        high[:2] -= self._cube_size / 2
+
+        if cube_pose is None:
+            cube_pos = np_random.uniform(low=low, high=high)
+        else:
+            cube_pos, cube_ori = cube_pose
+
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
         if self._domain_rand:
             modder.randomize_object_color(np_random, cube, cube_color)
