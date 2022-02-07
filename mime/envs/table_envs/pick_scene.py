@@ -20,7 +20,7 @@ class PickScene(TableScene):
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
 
-        self._cube_size_range = {"low": 0.04, "high": 0.07}
+        self._cube_size_range = {"low": 0.03, "high": 0.09}
 
     def load(self, np_random):
         super(PickScene, self).load(np_random)
@@ -92,7 +92,7 @@ class PickScene(TableScene):
         sc = Script(self)
         return [
             sc.tool_move(arm, pick_pos + [0, 0, 0.1]),
-            sc.tool_move(arm, pick_pos + [0, 0, 0.01]),
+            sc.tool_move(arm, pick_pos + [0, 0, 0.02]),
             sc.grip_close(grip),
             sc.tool_move(arm, pick_pos + [0, 0, 0.12]),
         ]
