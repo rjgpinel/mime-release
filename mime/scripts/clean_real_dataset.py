@@ -1,3 +1,4 @@
+import torch
 import click
 import mime
 import gym
@@ -11,6 +12,7 @@ import pickle as pkl
 from PIL import Image
 from tqdm import tqdm
 from pathlib import Path
+from einops import rearrange
 from torchvision.transforms import InterpolationMode
 
 from robos2r.core.tf import (
@@ -30,36 +32,47 @@ def blend(im_a, im_b, alpha):
     return im_blend
 
 
-def data_process(crop_size):
-    resize_im = T.Compose(
-        [
-            T.ToPILImage(),
-            T.Resize(crop_size),
-        ]
-    )
-    resize_seg = T.Compose(
-        [
-            T.ToPILImage(),
-            T.Resize(crop_size, interpolation=InterpolationMode.NEAREST),
-        ]
-    )
+crop_size = 224
+resize_crop_im = T.Compose(
+    [
+        T.Resize(crop_size, antialias=True),
+        T.CenterCrop(crop_size),
+    ]
+)
+resize_crop_seg = T.Compose(
+    [
+        T.Resize(crop_size, interpolation=InterpolationMode.NEAREST),
+        T.CenterCrop(crop_size),
+    ]
+)
 
-    crop_transform = T.CenterCrop(crop_size)
-    return resize_im, resize_seg, crop_transform
+
+def process_obs(obs, cam_list):
+    new_obs = []
+    for cam_name in cam_list:
+        new_obs.append(torch.tensor(obs[f"rgb_{cam_name}"]))
+    new_obs = torch.stack(new_obs).float()
+    new_obs = rearrange(new_obs, "b h w c -> b c h w")
+    new_obs = resize_crop_im(new_obs)
+    new_obs = rearrange(new_obs, "b c h w -> b h w c")
+    new_obs = np.asarray(new_obs, dtype=np.uint8)
+    new_obs_dic = {}
+    for i, cam_name in enumerate(cam_list):
+        new_obs_dic[f"rgb_{cam_name}"] = new_obs[i]
+    return new_obs_dic
 
 
 @click.command()
 @click.option(
     "-p",
     "--path",
-    default="sim2real/real/definitive/",
+    default="sim2real/new_setup/",
     type=str,
 )
-@click.option("-o", "--output_path", default="sim2real/real/stereo/", type=str)
-@click.option("--crop_size", default=224, type=int)
+@click.option("-o", "--output_path", default="sim2real/new_setup/", type=str)
 @click.option("-db", "--debug/--no-debug", default=False, is_flag=True)
 @click.option("-v", "--viz/--no-viz", default=False, is_flag=True)
-def main(path, output_path, crop_size, debug, viz):
+def main(path, output_path, debug, viz):
 
     directory = Path(data_path()) / path
     output_directory = Path(data_path()) / output_path
@@ -74,17 +87,20 @@ def main(path, output_path, crop_size, debug, viz):
     gripper_label = 0
     min_gripper_area = 200
 
-    resize_im, resize_seg, crop_transform = data_process(crop_size)
-
     dataset = []
     for data_file in tqdm(data_files):
         with open(str(data_file), "rb") as f:
             data = pkl.load(f)
             cam_list = data["cam_list"]
+            cams_info = data["cam_info"]
             try:
                 dataset += data["dataset"]
             except:
                 pass
+
+    cams_info = {
+        cam["camera_name"]: (cam["translation"], cam["rotation"]) for cam in cams_info
+    }
 
     print(f"Processing dataset of size {len(dataset)}")
 
@@ -98,6 +114,8 @@ def main(path, output_path, crop_size, debug, viz):
 
     for scene_idx in tqdm(range(len(dataset))):
         scene = dataset[scene_idx]
+        new_ims = process_obs(scene, cam_list)
+        scene.update(new_ims)
         gripper_pose = scene["gripper_pose"]
         cube_pose = scene["target_position"], scene["target_orientation"]
 
@@ -107,27 +125,17 @@ def main(path, output_path, crop_size, debug, viz):
         )
 
         valid = True
-        for cam_i in cam_list:
 
-            cam_pos, cam_ori = scene[f"{cam_i}_optical_frame_tf"]
-            match = re.search("(\d+)$", cam_i)
+        for cam_name in cam_list:
+            shot = sim_obs
 
-            cam_num = match.group(1)
-            cam_name = cam_i[: -len(cam_num)]
-            cam_num = int(cam_num)
+            im = sim_obs[f"rgb_{cam_name}0"]
+            seg = sim_obs[f"mask_{cam_name}0"]
+            im_real = scene[f"rgb_{cam_name}"]
 
-            camera = env.cameras[cam_name][cam_num][0]
-            camera.move_to(cam_pos, cam_ori)
-            camera.shot()
-
-            im = np.array(crop_transform(resize_im(np.flip(camera.rgb, (0, 1)))))
-            seg = np.array(crop_transform(resize_seg(np.flip(camera.mask, (0, 1)))))
-            im_real = np.array(
-                crop_transform(resize_im(scene[f"rgb_{cam_i}"][:, :, :3]))
-            )
-
-            dataset[scene_idx][f"rgb_{cam_i}"] = im_real
-            dataset[scene_idx][f"depth_{cam_i}"] = np.zeros((224, 224))
+            dataset[scene_idx][f"rgb_{cam_name}"] = im_real
+            dataset[scene_idx][f"depth_{cam_name}"] = np.zeros((224, 224))
+            dataset[scene_idx][f"camera_optical_frame_tf_{cam_name}"] = cams_info
 
             if viz:
                 im_blend = blend(im, im_real, 0.5)
