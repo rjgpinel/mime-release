@@ -88,8 +88,10 @@ class TowerScene(TableScene):
                 cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
             cube.color = color
-            if self._domain_rand:
-                modder.randomize_object_color(np_random, cube, color)
+            # if self._domain_rand:
+            # modder.randomize_object_color(np_random, cube, color)
+            # BE CAREFUL! Hardcoded Domain Rand color
+            modder.randomize_object_color(np_random, cube, color)
 
     def script(self):
         arm = self.robot.arm
