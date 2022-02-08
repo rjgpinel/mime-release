@@ -28,6 +28,11 @@ BACKGROUND_TEXTURES_PATH = assets_path() / "textures" / "background"
 class TableScene(Scene):
     """Base scene for tasks with robot on table"""
 
+    ROBOT_LABEL = 0
+    TABLE_LABEL = 1
+    BACKGROUND_LABEL = 2
+    OBJECT_LABEL = 3
+
     def __init__(
         self,
         robot_type="UR5",
@@ -87,6 +92,14 @@ class TableScene(Scene):
         robot = self._robot
         cam_params = self.cam_params
 
+        target = list(cam_params["target"])
+        target[0] = -0.4
+        DebugCamera.view_at(
+            target=tuple(target),
+            distance=0.5,
+            yaw=90,
+            pitch=-40,
+        )
         # VRCamera.move_to(pos=(1.0, 0.0, -0.77), orn=(0, 0, np.pi / 2))
 
         # reset robot state
@@ -131,12 +144,12 @@ class TableScene(Scene):
 
     def random_gripper_pose(self, np_random):
         x_gripper_min, x_gripper_max = (
-            self._workspace[0][0] + 0.001,
-            self._workspace[1][0] - 0.001,
+            self._workspace[0][0] + 0.02,
+            self._workspace[1][0] - 0.02,
         )
         y_gripper_min, y_gripper_max = (
-            self._workspace[0][1] + 0.001,
-            self._workspace[1][1] - 0.001,
+            self._workspace[0][1] + 0.02,
+            self._workspace[1][1] - 0.02,
         )
         gripper_pos = [
             np_random.uniform(x_gripper_min, x_gripper_max),
@@ -154,6 +167,12 @@ class TableScene(Scene):
     def _load(self, np_random):
         """
         Load robot, table and a camera for recording videos
+        WARNING: mask labels of objects are defined according to the order they are loaded in
+        ROBOT_LABEL = 0
+        TABLE_LABEL = 1
+        BACKGROUND_LABEL = 2
+        OBJECT_LABEL = 3
+        assumes the order of loading is: robot, table, background, objects
         """
 
         if self._domain_rand:
@@ -180,9 +199,10 @@ class TableScene(Scene):
             # self._workspace = [[-0.75, -0.05, 0.0], [0.15, 0.22, 0.3]]
             # self._workspace = [[-0.6, -0.1, 0.02], [-0.1, 0.22, 0.3]]
             self._workspace = [[-0.62, -0.15, 0.00], [-0.22, 0.22, 0.2]]
+            self._controller_workspace = [[-0.7, -0.25, 0.00], [-0.15, 0.3, 0.2]]
             # self._workspace = [[-0.5, -0.05, 0.0], [0.15, 0.22, 0.3]]
             self._object_workspace = [[-0.62, -0.15, 0.0], [-0.22, 0.22, 0.2]]
-            self._robot.arm.controller.workspace = self._workspace
+            self._robot.arm.controller.workspace = self._controller_workspace
 
             self._modder._cage_urdf = "prl_ur5/cage.urdf"
 

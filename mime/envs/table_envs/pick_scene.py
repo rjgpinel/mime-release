@@ -20,10 +20,7 @@ class PickScene(TableScene):
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
 
-        if self._rand_obj:
-            self._cube_size_range = {"low": 0.03, "high": 0.07}
-        else:
-            self._cube_size_range = 0.05
+        self._cube_size_range = {"low": 0.03, "high": 0.09}
 
     def load(self, np_random):
         super(PickScene, self).load(np_random)
@@ -54,28 +51,35 @@ class PickScene(TableScene):
         low, high = self._object_workspace
         low, high = np.array(low.copy()), np.array(high.copy())
 
-        if cube_pose is None:
-            cube_pos = np_random.uniform(low=low, high=high)
-        else:
-            cube_pos, cube_ori = cube_pose
-
         if self._target is not None:
             self._target.remove()
-
-        gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        if gripper_pose is None:
+            gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        else:
+            gripper_pos, gripper_orn = gripper_pose
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
         # load cube, set to random size and random position
         cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
-        cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
-        cube.color = cube_color
         self._cube_size = cube_size
         self._target = cube
+
+        low[:2] += self._cube_size / 2
+        high[:2] -= self._cube_size / 2
+
+        if cube_pose is None:
+            cube_pos = np_random.uniform(low=low, high=high)
+        else:
+            cube_pos, cube_ori = cube_pose
+
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
         if self._domain_rand:
             modder.randomize_object_color(np_random, cube, cube_color)
+        else:
+            cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
+            cube.color = cube_color
 
     def script(self):
         """
@@ -88,7 +92,7 @@ class PickScene(TableScene):
         sc = Script(self)
         return [
             sc.tool_move(arm, pick_pos + [0, 0, 0.1]),
-            sc.tool_move(arm, pick_pos + [0, 0, 0.01]),
+            sc.tool_move(arm, pick_pos + [0, 0, 0.02]),
             sc.grip_close(grip),
             sc.tool_move(arm, pick_pos + [0, 0, 0.12]),
         ]

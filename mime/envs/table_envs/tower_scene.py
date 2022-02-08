@@ -12,14 +12,13 @@ class TowerScene(TableScene):
         self._modder = TableModder(self)
 
         self._count_success = 0
-        self._num_cubes = 2
         self._cubes = []
         self._cubes_size = []
 
-        if self._rand_obj:
-            self._cube_size_range = {"low": 0.04, "high": 0.06}
-        else:
-            self._cube_sizes = [0.05 + i * 0.01 for i in range(self._num_cubes)]
+        self._cubes_size_range = [
+            {"low": 0.06, "high": 0.06},
+            {"low": 0.06, "high": 0.06},
+        ]
 
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
@@ -39,14 +38,11 @@ class TowerScene(TableScene):
         self._count_success = 0
 
         low, high = self._object_workspace
-        low_arm, high_arm = low.copy(), high.copy()
-        low_arm[2] = 0.1
         low_cubes, high_cubes = np.array(low.copy()), np.array(high.copy())
-        low_cubes[:2] += 0.02
-        high_cubes[:2] -= 0.02
 
         for cube in self._cubes:
             cube.remove()
+
         self._cubes = []
         self._cubes_size = []
 
@@ -56,45 +52,46 @@ class TowerScene(TableScene):
         self.robot.arm.reset(q)
 
         # load cubes
-        num_cubes = self._num_cubes
         cubes = []
         cubes_size = []
-        for i in range(num_cubes):
-            if self._rand_obj:
-                cube, cube_size = modder.load_mesh(
-                    "cube", self._cube_size_range, np_random
-                )
-            else:
-                cube, cube_size = modder.load_mesh(
-                    "cube", self._cube_sizes[i], np_random
-                )
-            # cube.dynamics.lateral_friction = 10
+        for i in range(len(self._cubes_size_range)):
+            cube_size_range = self._cubes_size_range[i]
+            cube, cube_size = modder.load_mesh("cube", cube_size_range, np_random)
             cubes.append(cube)
             cubes_size.append(cube_size)
+
         # sort cubes per decreasing size
         # biggest cube first
-        idxs_sort = np.argsort(-np.array(cubes_size))
-        for idx in idxs_sort:
-            self._cubes.append(cubes[idx])
-            self._cubes_size.append(cubes_size[idx])
-        self._cubes_size = np.array(self._cubes_size)
+        # idxs_sort = np.argsort(-np.array(cubes_size))
+        # for idx in idxs_sort:
+        #     self._cubes.append(cubes[idx])
+        #     self._cubes_size.append(cubes_size[idx])
+        # always stack the cubes in the same order
+        # use color information to deduce the order
+        self._cubes = cubes
+        self._cubes_size = np.array(cubes_size)
+        low_cubes[:2] += self._cubes_size[0]
+        high_cubes[:2] -= self._cubes_size[0]
 
         # move cubes to a random position and change color
-        cubes = []
         aabbs = []
-        for cube in self._cubes:
+        colors = np.array(
+            [
+                [234, 104, 135, 255],
+                [128, 196, 99, 255],
+            ],
+            dtype=float,
+        )
+        colors = colors / 255
+        for cube, color in zip(self._cubes, colors):
             aabbs, _ = sample_without_overlap(
-                cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.05
+                cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
-
-            if self._rand_obj:
-                color = np_random.uniform(0, 1, 4)
-            else:
-                color = np.array([11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1])
-            color[3] = 1
             cube.color = color
-            if self._domain_rand:
-                modder.randomize_object_color(np_random, cube, color)
+            # if self._domain_rand:
+            # modder.randomize_object_color(np_random, cube, color)
+            # BE CAREFUL! Hardcoded Domain Rand color
+            modder.randomize_object_color(np_random, cube, color)
 
     def script(self):
         arm = self.robot.arm
@@ -106,7 +103,7 @@ class TowerScene(TableScene):
 
         sc = Script(self)
         moves = []
-        z_offset = 0.01
+        z_offset = 0.02
         for pick_pos, cube_size in zip(cubes_pos[1:], cubes_size[:-1]):
             height += cube_size
             moves += [

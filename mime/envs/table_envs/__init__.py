@@ -6,16 +6,17 @@ from mime.envs.table_envs.table_modder import *
 from mime.envs.table_envs.pick_env import *
 from mime.envs.table_envs.push_env import *
 from mime.envs.table_envs.tower_env import *
-from mime.envs.table_envs.pour_env import *
-from mime.envs.table_envs.bowl_env import *
-from mime.envs.table_envs.rope_env import *
+
+# from mime.envs.table_envs.pour_env import *
+# from mime.envs.table_envs.bowl_env import *
+# from mime.envs.table_envs.rope_env import *
 
 
 environments = {
     "Pick": dict(max_episode_steps=200),
     "Rope": dict(max_episode_steps=400),
     "Push": dict(max_episode_steps=1000),
-    "Tower": dict(max_episode_steps=1500),
+    "Tower": dict(max_episode_steps=300),
     "Pour": dict(max_episode_steps=400),
     "Bowl": dict(max_episode_steps=600),
 }
@@ -37,8 +38,9 @@ env_combinations = list(
     )
 )
 
-cam_resolution = (1280, 720)
-gui_resolution = (640, 480)
+cam_resolution = (640, 360)
+gui_resolution = (1280, 720)
+crop_size = 224
 
 for env, kwargs in environments.items():
     orig_env_horizon = kwargs["max_episode_steps"]
@@ -107,6 +109,7 @@ for env, kwargs in environments.items():
                 view_rand=rand_cam,
                 gui_resolution=gui_resolution,
                 cam_resolution=cam_resolution,
+                crop_size=crop_size,
                 num_cameras=num_cam,
                 rand_obj=rand_obj,
                 domain_rand=domain_rand,

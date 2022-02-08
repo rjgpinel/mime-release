@@ -1,11 +1,12 @@
 import pybullet as pb
 import pickle as pkl
 import numpy as np
+import torch
 import torchvision.transforms as T
+import time
+from einops import rearrange
 
 from mime.config import assets_path
-
-from time import time
 
 from torchvision.transforms import InterpolationMode
 from .table_env import TableEnv
@@ -18,13 +19,11 @@ class TableCamEnv(TableEnv):
     def __init__(
         self,
         scene,
+        gui_resolution,
+        cam_resolution,
+        crop_size,
         view_rand="",
-        gui_resolution=(640, 480),
-        # cam_resolution=(640, 480),
-        cam_resolution=(1280, 720),
-        # cam_resolution=(320, 180),
         num_cameras=1,
-        crop_size=224,
     ):
         super(TableCamEnv, self).__init__(scene)
         scene.gui_resolution = gui_resolution
@@ -40,16 +39,23 @@ class TableCamEnv(TableEnv):
 
         self.cameras = {}
 
-        self.cam_list = []
-
         camera_cfgs = scene.camera_cfgs
-        self.cam_list = [
-            f"{cam_info['name']}{i}"
-            for cam_info in camera_cfgs
-            for i in range(num_cameras)
-        ]
+        self.cam_list = [f"{cam_info['name']}" for cam_info in camera_cfgs]
 
         self.joints_pos = {}
+
+        self.resize_crop_im = T.Compose(
+            [
+                T.Resize(self._crop_size, antialias=True),
+                T.CenterCrop(self._crop_size),
+            ]
+        )
+        self.resize_crop_seg = T.Compose(
+            [
+                T.Resize(self._crop_size, interpolation=InterpolationMode.NEAREST),
+                T.CenterCrop(self._crop_size),
+            ]
+        )
 
     def _reset(self, scene):
         np_random = self._np_random
@@ -109,9 +115,10 @@ class TableCamEnv(TableEnv):
                         )
 
                         if key == "rotation":
-                            rot_quat = ext_params[key]
-                            rot_euler = pb.getEulerFromQuaternion(rot_quat)
-                            ext_rand_params[key] = rot_euler + rand_offset
+                            cam_orn = ext_params[key]
+                            if len(cam_orn) == 4:
+                                cam_orn = pb.getEulerFromQuaternion(cam_orn)
+                            ext_rand_params[key] = cam_orn + rand_offset
                         else:
                             ext_rand_params[key] = ext_params[key] + rand_offset
 
@@ -200,21 +207,8 @@ class TableCamEnv(TableEnv):
     def _get_observation(self, scene):
         obs_dic = super(TableCamEnv, self)._get_observation(scene)
 
-        resize_im = T.Compose(
-            [
-                T.ToPILImage(),
-                T.Resize(self._crop_size),
-            ]
-        )
-        resize_seg = T.Compose(
-            [
-                T.ToPILImage(),
-                T.Resize(self._crop_size, interpolation=InterpolationMode.NEAREST),
-            ]
-        )
-
-        crop_transform = T.CenterCrop(self._crop_size)
-
+        cam_dic = dict(rgb=[], depth=[], mask=[])
+        cam_names = []
         for cam_name, cameras_list in self.cameras.items():
             for i, camera_info in enumerate(cameras_list):
                 camera, near, far, attached, cam_pos, cam_orn = camera_info
@@ -234,24 +228,31 @@ class TableCamEnv(TableEnv):
                         cam_orn,
                     )
 
-                start_t = time()
                 camera.shot()
-                # print(f"Shot - Time: {time() - start_t}")
-                rgb = camera.rgb.copy()
-                depth = camera.depth_uint8(kn=near, kf=far)
-                depth = depth.copy()
-                mask = camera.mask.copy()
+                rgb = torch.tensor(camera.rgb)
+                depth = torch.tensor(camera.depth_uint8(kn=near, kf=far))
+                mask = torch.tensor(camera.mask)
                 if not attached:
-                    rgb = np.flip(rgb, (0, 1))
-                    depth = np.flip(depth, (0, 1))
-                    mask = np.flip(mask, (0, 1))
+                    rgb = torch.flip(rgb, (0, 1))
+                    depth = torch.flip(depth, (0, 1))
+                    mask = torch.flip(mask, (0, 1))
 
-                obs_dic[f"rgb_{cam_name}{i}"] = np.array(crop_transform(resize_im(rgb)))
-                obs_dic[f"depth_{cam_name}{i}"] = np.array(
-                    crop_transform(resize_seg(depth))
-                )
-                obs_dic[f"mask_{cam_name}{i}"] = np.array(
-                    crop_transform(resize_seg(mask))
-                )
+                cam_dic["rgb"].append(rgb)
+                cam_dic["depth"].append(depth)
+                cam_dic["mask"].append(mask)
+                cam_names.append(f"{cam_name}{i}")
+
+        for channel, v in cam_dic.items():
+            v_new = torch.stack(v).float()
+            if channel == "rgb":
+                v_new = rearrange(v_new, "b h w c -> b c h w")
+                v_new = self.resize_crop_im(v_new)
+                v_new = rearrange(v_new, "b c h w -> b h w c")
+            else:
+                # assumes other modalities are of the form (b h w)
+                v_new = self.resize_crop_seg(v_new)
+            v_new = np.asarray(v_new, dtype=np.uint8)
+            for i, cam_name in enumerate(cam_names):
+                obs_dic[f"{channel}_{cam_name}"] = v_new[i]
 
         return obs_dic

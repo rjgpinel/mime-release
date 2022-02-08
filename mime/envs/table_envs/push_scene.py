@@ -29,26 +29,19 @@ class PushScene(TableScene):
         self._target_type = Target.CYLINDER
 
         if self._target_type == Target.CYLINDER:
-            if self._rand_obj:
-                radius_range = {"low": 0.03, "high": 0.07}
-                height_range = {"low": 0.06, "high": 0.08}
-                self._cylinder_size_range = {
-                    "low": [radius_range["low"], height_range["low"]],
-                    "high": [radius_range["high"], height_range["high"]],
-                }
-            else:
-                height = 0.085
-                radius = 0.0425
-                self._cylinder_size_range = [radius, height]
+            radius_range = {"low": 0.03, "high": 0.07}
+            height_range = {"low": 0.05, "high": 0.07}
+            self._cylinder_size_range = {
+                "low": [radius_range["low"], height_range["low"]],
+                "high": [radius_range["high"], height_range["high"]],
+            }
         elif self._target_type == Target.CUBE:
-            if self.rand_obj:
-                self._cube_size_range = {"low": 0.03, "high": 0.06}
-            else:
-                self._cube_size_range = 0.05
+            self._cube_size_range = {"low": 0.03, "high": 0.07}
         else:
             raise ValueError(f"Target Type {self._target_type} is not valid.")
 
-        self._marker_size_range = 0.07
+        self._marker_size_range = 0.04
+        self._success_distance = 0.02
 
     def load(self, np_random):
         super(PushScene, self).load(np_random)
@@ -80,12 +73,6 @@ class PushScene(TableScene):
         if self._target is not None:
             self._target.remove()
 
-        gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
-
-        q0 = self.robot.arm.controller.joints_target
-        q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
-        self.robot.arm.reset(q)
-
         # load cube, set to random size and random position
         if self._target_type == Target.CUBE:
             target, target_size = modder.load_mesh(
@@ -102,27 +89,40 @@ class PushScene(TableScene):
         else:
             raise ValueError(f"Target Type {self._target_type} is not valid.")
 
-        target_pos = np_random.uniform(low=low, high=high)
-
         target_color = (54.0 / 255.0, 73.0 / 255.0, 150.0 / 255.0, 1.0)
         target.color = target_color
         self._target_height = target_height
         self._target_width = target_width
+
+        low[:2] += self._target_width / 2
+        high[:2] -= self._target_width / 2
+
         self._target = target
-        self._target.position = (target_pos[0], target_pos[1], self._target_height / 2)
 
         # Create Marker
+        valid_conf = False
         marker, marker_size = modder.add_marker(
             "square", self._marker_size_range, np_random
         )
-        marker_pos = np_random.uniform(
-            low=low + marker_size / 2, high=high - marker_size / 2
-        )
 
-        while np.linalg.norm(marker_pos[:2] - target_pos[:2]) < self._target_width * 3:
-            marker_pos = np_random.uniform(
-                low=low + marker_size / 2, high=high - marker_size / 2
-            )
+        while not valid_conf:
+            gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+            marker_pos = np_random.uniform(low=low, high=high)
+            target_pos = np_random.uniform(low=low, high=high)
+
+            if (
+                np.linalg.norm(marker_pos[:2] - target_pos[:2])
+                >= self._target_width * 2
+            ) and np.linalg.norm(
+                gripper_pos[:2] - target_pos[:2]
+            ) >= self._target_width * 1.5:
+                valid_conf = True
+
+        q0 = self.robot.arm.controller.joints_target
+        q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
+        self.robot.arm.reset(q)
+
+        self._target.position = (target_pos[0], target_pos[1], self._target_height / 2)
 
         marker_pos[2] = 0.0001
         marker_color = [178 / 255, 0, 0, 1]
@@ -154,9 +154,12 @@ class PushScene(TableScene):
             / (np.linalg.norm(ref_v) * np.linalg.norm(push_norm_v))
         )
 
+        print(f"Push Angle {push_angle}")
+        print(f"Norm V {push_norm_v}")
         push_angle = push_angle if push_norm_v[0] * push_norm_v[1] > 0 else -push_angle
 
-        init_push_xy = target_pos[:2] - push_norm_v * self._target_width / 1.2
+        print(f"After Push Angle {push_angle}")
+        init_push_xy = target_pos[:2] - push_norm_v * self._target_width
         init_push_pos = np.array(
             [init_push_xy[0], init_push_xy[1], self._target_height]
         )
@@ -204,7 +207,7 @@ class PushScene(TableScene):
         return 0
 
     def is_task_success(self):
-        return np.linalg.norm(self.distance_to_target[:2]) < 0.015
+        return np.linalg.norm(self.distance_to_target[:2]) < self._success_distance
 
 
 def test_scene():
