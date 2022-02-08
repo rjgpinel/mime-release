@@ -16,8 +16,8 @@ class TowerScene(TableScene):
         self._cubes_size = []
 
         self._cubes_size_range = [
-            {"low": 0.03, "high": 0.055},
-            {"low": 0.06, "high": 0.08},
+            {"low": 0.06, "high": 0.06},
+            {"low": 0.06, "high": 0.06},
         ]
 
         v, w = self._max_tool_velocity
@@ -77,8 +77,8 @@ class TowerScene(TableScene):
         aabbs = []
         colors = np.array(
             [
-                [11, 124, 96, 255],
-                [255, 140, 20, 255],
+                [234, 104, 135, 255],
+                [128, 196, 99, 255],
             ],
             dtype=float,
         )
