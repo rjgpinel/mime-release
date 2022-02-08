@@ -39,6 +39,7 @@ class TowerScene(TableScene):
 
         low, high = self._object_workspace
         low_cubes, high_cubes = np.array(low.copy()), np.array(high.copy())
+
         for cube in self._cubes:
             cube.remove()
 
@@ -61,25 +62,31 @@ class TowerScene(TableScene):
 
         # sort cubes per decreasing size
         # biggest cube first
-        idxs_sort = np.argsort(-np.array(cubes_size))
-        for idx in idxs_sort:
-            self._cubes.append(cubes[idx])
-            self._cubes_size.append(cubes_size[idx])
-        self._cubes_size = np.array(self._cubes_size)
-
-        low_cubes[:2] += self._cubes_size[0] / 2
-        high_cubes[:2] -= self._cubes_size[0] / 2
+        # idxs_sort = np.argsort(-np.array(cubes_size))
+        # for idx in idxs_sort:
+        #     self._cubes.append(cubes[idx])
+        #     self._cubes_size.append(cubes_size[idx])
+        # always stack the cubes in the same order
+        # use color information to deduce the order
+        self._cubes = cubes
+        self._cubes_size = np.array(cubes_size)
+        low_cubes[:2] += self._cubes_size[0]
+        high_cubes[:2] -= self._cubes_size[0]
 
         # move cubes to a random position and change color
-        cubes = []
         aabbs = []
-        for cube in self._cubes:
+        colors = np.array(
+            [
+                [11, 124, 96, 255],
+                [255, 140, 20, 255],
+            ],
+            dtype=float,
+        )
+        colors = colors / 255
+        for cube, color in zip(self._cubes, colors):
             aabbs, _ = sample_without_overlap(
                 cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
             )
-
-            color = np.array([11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1])
-            color[3] = 1
             cube.color = color
             if self._domain_rand:
                 modder.randomize_object_color(np_random, cube, color)

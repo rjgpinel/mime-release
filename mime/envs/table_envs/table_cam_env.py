@@ -19,11 +19,11 @@ class TableCamEnv(TableEnv):
     def __init__(
         self,
         scene,
+        gui_resolution,
+        cam_resolution,
+        crop_size,
         view_rand="",
-        gui_resolution=(640, 480),
-        cam_resolution=(640, 360),
         num_cameras=1,
-        crop_size=224,
     ):
         super(TableCamEnv, self).__init__(scene)
         scene.gui_resolution = gui_resolution
