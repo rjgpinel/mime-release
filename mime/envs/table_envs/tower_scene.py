@@ -16,9 +16,14 @@ class TowerScene(TableScene):
         self._cubes_size = []
 
         self._cubes_size_range = [
-            {"low": 0.06, "high": 0.06},
-            {"low": 0.06, "high": 0.06},
+            {"low": 0.055, "high": 0.065},
+            {"low": 0.055, "high": 0.065},
         ]
+
+        # self._cubes_size_range = [
+        #     {"low": 0.06, "high": 0.06},
+        #     {"low": 0.06, "high": 0.06},
+        # ]
 
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
