@@ -75,10 +75,12 @@ class PickScene(TableScene):
             cube_pos, cube_ori = cube_pose
 
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
+
+        cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
+
         if self._domain_rand:
             modder.randomize_object_color(np_random, cube, cube_color)
         else:
-            cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
             cube.color = cube_color
 
     def script(self):
