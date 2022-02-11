@@ -260,6 +260,11 @@ class TableScene(Scene):
         return self._arm_dof
 
     @property
+    def gripper_pose(self):
+        tool_pos, tool_orn = self.robot.arm.tool.state.position
+        return (tool_pos, tool_orn)
+
+    @property
     def robot(self):
         return self._robot
 

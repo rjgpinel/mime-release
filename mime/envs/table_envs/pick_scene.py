@@ -116,10 +116,6 @@ class PickScene(TableScene):
         tool_pos, _ = self.robot.arm.tool.state.position
         return np.subtract(self.target_position, tool_pos)
 
-    def gripper_pose(self):
-        tool_pos, tool_orn = self.robot.arm.tool.state.position
-        return (tool_pos, tool_orn)
-
     def get_reward(self, action):
         return 0
 

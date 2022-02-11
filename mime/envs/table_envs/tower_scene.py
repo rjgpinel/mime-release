@@ -157,10 +157,6 @@ class TowerScene(TableScene):
         success = self._count_success > 5
         return success
 
-    def gripper_pose(self):
-        tool_pos, tool_orn = self.robot.arm.tool.state.position
-        return (tool_pos, tool_orn)
-
 
 def test_scene():
     from time import sleep
