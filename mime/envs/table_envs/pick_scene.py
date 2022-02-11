@@ -32,15 +32,18 @@ class PickScene(TableScene):
     def reset(
         self,
         np_random,
-        gripper_pose=None,
-        cube_pose=None,
-        cube_color=None,
+        **kwargs,
     ):
         """
         Reset the cube position and arm position.
         """
-
         super(PickScene, self).reset(np_random)
+
+        cubes_size = kwargs.get("cubes_size", None)
+        cubes_position = kwargs.get("cubes_position", None)
+        cubes_color = kwargs.get("cubes_color", None)
+        gripper_position = kwargs.get("gripper_position", None)
+
         modder = self._modder
 
         # load and randomize cage
@@ -54,30 +57,37 @@ class PickScene(TableScene):
 
         if self._target is not None:
             self._target.remove()
-        if gripper_pose is None:
+        if gripper_position is None:
             gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
         else:
-            gripper_pos, gripper_orn = gripper_pose
+            gripper_pos = gripper_position
+            gripper_orn = [math.pi, 0, math.pi / 2]
+
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
         # load cube, set to random size and random position
-        cube, cube_size = modder.load_mesh("cube", self._cube_size_range, np_random)
+        if cubes_size is None:
+            cube_size = self._cube_size_range
+        else:
+            cube_size = cubes_size[-1]
+        cube, cube_size = modder.load_mesh("cube", cube_size, np_random)
         self._cube_size = cube_size
         self._target = cube
 
         low[:2] += self._cube_size / 2
         high[:2] -= self._cube_size / 2
 
-        if cube_pose is None:
+        if cubes_position is None:
             cube_pos = np_random.uniform(low=low, high=high)
         else:
-            cube_pos, cube_ori = cube_pose
+            cube_pos = cubes_position[-1]
 
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
 
-        if cube_color is None:
+        rand_color = True
+        if cubes_color is None:
             colors = np.array(
                 [
                     [234, 104, 135, 255],
@@ -89,7 +99,11 @@ class PickScene(TableScene):
             n_color_options = colors.shape[0]
             color_idx = np.random.choice(n_color_options)
             cube_color = colors[color_idx]
+        else:
+            cube_color = np.array(cubes_color[-1] + [255], dtype=float) / 255
+            rand_color = False
 
+        if rand_color:
             modder.randomize_object_color(np_random, cube, cube_color)
         else:
             cube.color = cube_color

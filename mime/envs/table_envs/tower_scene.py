@@ -12,6 +12,7 @@ class TowerScene(TableScene):
         self._modder = TableModder(self)
 
         self._count_success = 0
+        self._num_cubes = 2
         self._cubes = []
         self._cubes_size = []
 
@@ -26,13 +27,13 @@ class TowerScene(TableScene):
     def load(self, np_random):
         super(TowerScene, self).load(np_random)
 
-    def reset(
-        self,
-        np_random,
-        cubes_info=None,
-        gripper_pose=None,
-    ):
+    def reset(self, np_random, **kwargs):
         super(TowerScene, self).reset(np_random)
+        cubes_size = kwargs.get("cubes_size", None)
+        cubes_position = kwargs.get("cubes_position", None)
+        cubes_color = kwargs.get("cubes_color", None)
+        gripper_position = kwargs.get("gripper_position", None)
+
         modder = self._modder
 
         # load and randomize cage
@@ -51,94 +52,61 @@ class TowerScene(TableScene):
         self._cubes = []
         self._cubes_size = []
 
-        if gripper_pose is None:
+        if gripper_position is None:
             gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
         else:
-            gripper_pos, gripper_orn = gripper_pose
+            gripper_pos = gripper_position
+            gripper_orn = [math.pi, 0, math.pi / 2]
 
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
 
         # load cubes
-        cubes = []
-        cubes_size = []
-        if cubes_info is None:
-            for i in range(len(self._cubes_size_range)):
+        for i in range(self._num_cubes):
+            if cubes_size is not None:
+                cube_size = cubes_size[i]
+                cube, cube_size = modder.load_mesh("cube", cube_size, np_random)
+            else:
                 cube_size_range = self._cubes_size_range[i]
                 cube, cube_size = modder.load_mesh("cube", cube_size_range, np_random)
-                cubes.append(cube)
-                cubes_size.append(cube_size)
+            self._cubes.append(cube)
+            self._cubes_size.append(cube_size)
 
-            # sort cubes per decreasing size
-            # biggest cube first
-            # idxs_sort = np.argsort(-np.array(cubes_size))
-            # for idx in idxs_sort:
-            #     self._cubes.append(cubes[idx])
-            #     self._cubes_size.append(cubes_size[idx])
+        # always stack the cubes in the same order
+        # use color information to deduce the order
+        self._cubes_size = np.array(self._cubes_size)
+        low_cubes[:2] += self._cubes_size[0]
+        high_cubes[:2] -= self._cubes_size[0]
 
-            # always stack the cubes in the same order
-            # use color information to deduce the order
-            self._cubes = cubes
-            self._cubes_size = np.array(cubes_size)
-            low_cubes[:2] += self._cubes_size[0]
-            high_cubes[:2] -= self._cubes_size[0]
+        rand_color = True
+        if cubes_color is None:
+            cubes_color = [[218, 86, 80, 255], [128, 196, 99, 255]]
+        else:
+            rand_color = False
+            cubes_color = [c + [255] for c in cubes_color]
 
-            # move cubes to a random position and change color
-            aabbs = []
-            colors = np.array(
-                [
-                    [218, 86, 80, 255],
-                    [128, 196, 99, 255],
-                ],
-                dtype=float,
-            )
-            colors = colors / 255
-            for cube, color in zip(self._cubes, colors):
+        cubes_color = np.array(cubes_color, dtype=np.float) / 255
+
+        aabbs = []
+        self._cubes_color = cubes_color
+        # move cubes to a random position and change color
+        for i in range(len(self._cubes)):
+            cube = self._cubes[i]
+            color = cubes_color[i]
+            if rand_color:
+                # BE CAREFUL! Hardcoded Domain Rand color
+                modder.randomize_object_color(np_random, cube, color)
+                self._cubes_color[i] = cube.color
+            else:
+                cube.color = color
+
+            if cubes_position is None:
                 aabbs, _ = sample_without_overlap(
                     cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
                 )
-                # if self._domain_rand:
-                # modder.randomize_object_color(np_random, cube, color)
-                # else:
-                # cube.color = color
-                # BE CAREFUL! Hardcoded Domain Rand color
-                modder.randomize_object_color(np_random, cube, color)
-
-        else:
-            cubes_pos = []
-            cubes_color = []
-            for cube_color, cube_size, cube_pos in cubes_info:
-                cube, cube_size = modder.load_mesh("cube", cube_size, np_random)
-                cube_color = cube_color + [255]
-                cubes_color.append(cube_color)
-                cube.color = np.array(cube_color) / 255
-                cubes.append(cube)
-                cubes_size.append(cube_size)
-                cubes_pos.append(cube_pos)
-            self._cubes = cubes
-            self._cubes_size = np.array(cubes_size)
-            self._cubes_color = cubes_color
-
-            low_cubes[:2] += self._cubes_size[0]
-            high_cubes[:2] -= self._cubes_size[0]
-
-            # move cubes to a random position and change color
-            aabbs = []
-            for cube, cube_pos in zip(self._cubes, cubes_pos):
-                if cube_pos is None:
-                    aabbs, _ = sample_without_overlap(
-                        cube,
-                        aabbs,
-                        np_random,
-                        low_cubes,
-                        high_cubes,
-                        0,
-                        0,
-                        min_dist=0.04,
-                    )
-                else:
-                    cube.position = cube_pos
+            else:
+                cube.position = cubes_position[i]
 
     def script(self):
         arm = self.robot.arm

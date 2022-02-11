@@ -51,14 +51,10 @@ def main(episodes, initial_episode, num_cubes, output_path):
         top_idx = np.random.choice(len(cubes_top))
         bottom_idx = np.random.choice(len(cubes_bottom))
 
-        top = (cubes_top[top_idx]["color"], cubes_top[top_idx]["size"], None)
-        bottom = (
-            cubes_bottom[bottom_idx]["color"],
-            cubes_bottom[bottom_idx]["size"],
-            None,
-        )
+        cubes_color = [cubes_bottom[bottom_idx]["color"], cubes_top[top_idx]["color"]]
+        cubes_size = [cubes_bottom[bottom_idx]["size"], cubes_top[top_idx]["size"]]
 
-        obs = env.reset(cubes_info=[bottom, top])
+        obs = env.reset(cubes_size=cubes_size, cubes_color=cubes_color)
 
         cubes_size = env.scene._cubes_size
         cubes_position = []
