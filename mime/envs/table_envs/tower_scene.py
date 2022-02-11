@@ -88,7 +88,7 @@ class TowerScene(TableScene):
             aabbs = []
             colors = np.array(
                 [
-                    [234, 104, 135, 255],
+                    [218, 86, 80, 255],
                     [128, 196, 99, 255],
                 ],
                 dtype=float,
