@@ -73,7 +73,6 @@ class PickCamEnv(TableCamEnv):
                 distance_to_goal=scene.distance_to_target,
                 target_position=scene.target_position,
                 target_orientation=scene.target_orientation,
-                gripper_pose=scene.gripper_pose(),
             )
         )
 

@@ -66,7 +66,6 @@ class TowerCamEnv(TableCamEnv):
 
     def _get_observation(self, scene):
         obs = super()._get_observation(scene)
-        obs["gripper_pose"] = scene.gripper_pose()
         for cam_name, cameras_list in self.cameras.items():
             for i, camera_info in enumerate(cameras_list):
                 mask = obs[f"mask_{cam_name}{i}"]

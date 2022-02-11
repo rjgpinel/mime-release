@@ -3,7 +3,7 @@ from .. import utils
 
 
 class TableEnv(SceneEnv):
-    """ Base environment for table scene tasks """
+    """Base environment for table scene tasks"""
 
     def __init__(self, scene):
         super(TableEnv, self).__init__(scene)
@@ -16,6 +16,7 @@ class TableEnv(SceneEnv):
             linear_velocity=scene.robot.arm.tool.state.velocity[0],
             angular_velocity=scene.robot.arm.tool.state.velocity[1],
             grip_velocity=scene.robot.gripper.controller.state,
+            gripper_pose=scene.gripper_pose,
         )
 
         return obs_dic
