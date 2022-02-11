@@ -16,14 +16,9 @@ class TowerScene(TableScene):
         self._cubes_size = []
 
         self._cubes_size_range = [
-            {"low": 0.055, "high": 0.065},
-            {"low": 0.055, "high": 0.065},
+            {"low": 0.045, "high": 0.055},
+            {"low": 0.04, "high": 0.05},
         ]
-
-        # self._cubes_size_range = [
-        #     {"low": 0.06, "high": 0.06},
-        #     {"low": 0.06, "high": 0.06},
-        # ]
 
         v, w = self._max_tool_velocity
         self._max_tool_velocity = (1.5 * v, w)
@@ -31,7 +26,12 @@ class TowerScene(TableScene):
     def load(self, np_random):
         super(TowerScene, self).load(np_random)
 
-    def reset(self, np_random):
+    def reset(
+        self,
+        np_random,
+        cubes_info=None,
+        gripper_pose=None,
+    ):
         super(TowerScene, self).reset(np_random)
         modder = self._modder
 
@@ -51,7 +51,11 @@ class TowerScene(TableScene):
         self._cubes = []
         self._cubes_size = []
 
-        gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        if gripper_pose is None:
+            gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
+        else:
+            gripper_pos, gripper_orn = gripper_pose
+
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
         self.robot.arm.reset(q)
@@ -59,44 +63,82 @@ class TowerScene(TableScene):
         # load cubes
         cubes = []
         cubes_size = []
-        for i in range(len(self._cubes_size_range)):
-            cube_size_range = self._cubes_size_range[i]
-            cube, cube_size = modder.load_mesh("cube", cube_size_range, np_random)
-            cubes.append(cube)
-            cubes_size.append(cube_size)
+        if cubes_info is None:
+            for i in range(len(self._cubes_size_range)):
+                cube_size_range = self._cubes_size_range[i]
+                cube, cube_size = modder.load_mesh("cube", cube_size_range, np_random)
+                cubes.append(cube)
+                cubes_size.append(cube_size)
 
-        # sort cubes per decreasing size
-        # biggest cube first
-        # idxs_sort = np.argsort(-np.array(cubes_size))
-        # for idx in idxs_sort:
-        #     self._cubes.append(cubes[idx])
-        #     self._cubes_size.append(cubes_size[idx])
-        # always stack the cubes in the same order
-        # use color information to deduce the order
-        self._cubes = cubes
-        self._cubes_size = np.array(cubes_size)
-        low_cubes[:2] += self._cubes_size[0]
-        high_cubes[:2] -= self._cubes_size[0]
+            # sort cubes per decreasing size
+            # biggest cube first
+            # idxs_sort = np.argsort(-np.array(cubes_size))
+            # for idx in idxs_sort:
+            #     self._cubes.append(cubes[idx])
+            #     self._cubes_size.append(cubes_size[idx])
 
-        # move cubes to a random position and change color
-        aabbs = []
-        colors = np.array(
-            [
-                [234, 104, 135, 255],
-                [128, 196, 99, 255],
-            ],
-            dtype=float,
-        )
-        colors = colors / 255
-        for cube, color in zip(self._cubes, colors):
-            aabbs, _ = sample_without_overlap(
-                cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
+            # always stack the cubes in the same order
+            # use color information to deduce the order
+            self._cubes = cubes
+            self._cubes_size = np.array(cubes_size)
+            low_cubes[:2] += self._cubes_size[0]
+            high_cubes[:2] -= self._cubes_size[0]
+
+            # move cubes to a random position and change color
+            aabbs = []
+            colors = np.array(
+                [
+                    [234, 104, 135, 255],
+                    [128, 196, 99, 255],
+                ],
+                dtype=float,
             )
-            cube.color = color
-            # if self._domain_rand:
-            # modder.randomize_object_color(np_random, cube, color)
-            # BE CAREFUL! Hardcoded Domain Rand color
-            modder.randomize_object_color(np_random, cube, color)
+            colors = colors / 255
+            for cube, color in zip(self._cubes, colors):
+                aabbs, _ = sample_without_overlap(
+                    cube, aabbs, np_random, low_cubes, high_cubes, 0, 0, min_dist=0.04
+                )
+                # if self._domain_rand:
+                # modder.randomize_object_color(np_random, cube, color)
+                # else:
+                # cube.color = color
+                # BE CAREFUL! Hardcoded Domain Rand color
+                modder.randomize_object_color(np_random, cube, color)
+
+        else:
+            cubes_pos = []
+            cubes_color = []
+            for cube_color, cube_size, cube_pos in cubes_info:
+                cube, cube_size = modder.load_mesh("cube", cube_size, np_random)
+                cube_color = cube_color + [255]
+                cubes_color.append(cube_color)
+                cube.color = np.array(cube_color) / 255
+                cubes.append(cube)
+                cubes_size.append(cube_size)
+                cubes_pos.append(cube_pos)
+            self._cubes = cubes
+            self._cubes_size = np.array(cubes_size)
+            self._cubes_color = cubes_color
+
+            low_cubes[:2] += self._cubes_size[0]
+            high_cubes[:2] -= self._cubes_size[0]
+
+            # move cubes to a random position and change color
+            aabbs = []
+            for cube, cube_pos in zip(self._cubes, cubes_pos):
+                if cube_pos is None:
+                    aabbs, _ = sample_without_overlap(
+                        cube,
+                        aabbs,
+                        np_random,
+                        low_cubes,
+                        high_cubes,
+                        0,
+                        0,
+                        min_dist=0.04,
+                    )
+                else:
+                    cube.position = cube_pos
 
     def script(self):
         arm = self.robot.arm
@@ -115,8 +157,8 @@ class TowerScene(TableScene):
                 sc.tool_move(arm, pick_pos + [0, 0, 0.1]),
                 sc.tool_move(arm, pick_pos + [0, 0, z_offset]),
                 sc.grip_close(grip),
-                sc.tool_move(arm, pick_pos + [0, 0, height + z_offset * 2]),
-                sc.tool_move(arm, tower_pos + [0, 0, height + z_offset * 2]),
+                sc.tool_move(arm, pick_pos + [0, 0, height + z_offset * 1.5]),
+                sc.tool_move(arm, tower_pos + [0, 0, height + z_offset * 1.5]),
                 sc.grip_open(grip),
                 sc.tool_move(arm, tower_pos + [0, 0, height + cube_size]),
             ]

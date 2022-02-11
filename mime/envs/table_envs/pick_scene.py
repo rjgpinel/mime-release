@@ -34,6 +34,7 @@ class PickScene(TableScene):
         np_random,
         gripper_pose=None,
         cube_pose=None,
+        cube_color=None,
     ):
         """
         Reset the cube position and arm position.
@@ -76,12 +77,26 @@ class PickScene(TableScene):
 
         self._target.position = (cube_pos[0], cube_pos[1], self._cube_size / 2)
 
-        cube_color = (11.0 / 255.0, 124.0 / 255.0, 96.0 / 255.0, 1.0)
+        if cube_color is None:
+            colors = np.array(
+                [
+                    [234, 104, 135, 255],
+                    [128, 196, 99, 255],
+                ],
+                dtype=float,
+            )
+            colors = colors / 255
+            n_color_options = colors.shape[0]
+            color_idx = np.random.choice(n_color_options)
+            cube_color = colors[color_idx]
 
-        if self._domain_rand:
             modder.randomize_object_color(np_random, cube, cube_color)
         else:
             cube.color = cube_color
+        # if self._domain_rand:
+        #     modder.randomize_object_color(np_random, cube, cube_color)
+        # else:
+        #     cube.color = cube_color
 
     def script(self):
         """
