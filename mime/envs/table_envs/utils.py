@@ -65,7 +65,7 @@ def conf_to_radians(joint_values):
 def load_textures(path, np_random, max_number=None):
     textures = []
     print(path)
-    texture_paths = list(path.glob("*.jpg"))
+    texture_paths = list(path.glob("*.jpg")) + list(path.glob("*.png"))
     np_random.shuffle(texture_paths)
 
     textures_len = len(texture_paths)
