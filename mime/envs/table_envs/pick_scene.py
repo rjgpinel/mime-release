@@ -61,7 +61,7 @@ class PickScene(TableScene):
             gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
         else:
             gripper_pos = gripper_position
-            gripper_orn = [math.pi, 0, math.pi / 2]
+            gripper_orn = [pi, 0, pi / 2]
 
         q0 = self.robot.arm.controller.joints_target
         q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
