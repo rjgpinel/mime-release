@@ -80,13 +80,12 @@ class TowerScene(TableScene):
         high_cubes[:2] -= self._cubes_size[0]
 
         rand_color = True
-        if cubes_color is None:
-            cubes_color = [[218, 86, 80, 255], [128, 196, 99, 255]]
-        else:
+        if cubes_color:
             rand_color = False
-            cubes_color = [c + [255] for c in cubes_color]
-
-        cubes_color = np.array(cubes_color, dtype=np.float) / 255
+            cubes_color = np.array(cubes_color, dtype=np.float)
+        else:
+            cubes_color = [[218, 86, 80, 255], [128, 196, 99, 255]]
+            cubes_color = np.array(cubes_color, dtype=np.float) / 255
 
         aabbs = []
         self._cubes_color = cubes_color

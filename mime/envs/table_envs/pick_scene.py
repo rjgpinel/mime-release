@@ -43,7 +43,6 @@ class PickScene(TableScene):
         cubes_position = kwargs.get("cubes_position", None)
         cubes_color = kwargs.get("cubes_color", None)
         gripper_position = kwargs.get("gripper_position", None)
-
         modder = self._modder
 
         # load and randomize cage
@@ -100,7 +99,7 @@ class PickScene(TableScene):
             color_idx = np.random.choice(n_color_options)
             cube_color = colors[color_idx]
         else:
-            cube_color = np.array(cubes_color[-1] + [255], dtype=float) / 255
+            cube_color = cubes_color[-1]
             rand_color = False
 
         if rand_color:
