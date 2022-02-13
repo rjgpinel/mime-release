@@ -9,23 +9,17 @@ class TableModder(object):
         self.scene = scene
         self.scene._cage = None
         self._cage_urdf = None
-        self._textures = {}
+        self._textures = []
 
     def randomize_robot_visual(self, np_random):
-        self.scene.robot._body.randomize_shape(
-            np_random, self._textures["robot"], per_link=True
-        )
+        self.scene.robot._body.randomize_shape(np_random, self._textures, per_link=True)
 
     def randomize_cage_visual(self, np_random):
         if self.scene._cage is not None:
-            self.scene._cage.randomize_shape(
-                np_random, self._textures["background"], per_link=True
-            )
+            self.scene._cage.randomize_shape(np_random, self._textures, per_link=True)
 
     def randomize_table_visual(self, np_random):
-        self.scene._table.randomize_shape(
-            np_random, self._textures["table"], per_link=True
-        )
+        self.scene._table.randomize_shape(np_random, self._textures, per_link=True)
 
     def randomize_lighting(self, np_random):
         light_color = np_random.uniform(0, 1, 3)

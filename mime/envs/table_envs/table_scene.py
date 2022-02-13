@@ -20,9 +20,7 @@ from mime.config import assets_path
 
 
 CAMERA_CFG_PATH = assets_path() / "prl_ur5" / "camera_setup.yml"
-TABLE_TEXTURES_PATH = assets_path() / "textures" / "table"
-ROBOT_TEXTURES_PATH = assets_path() / "textures" / "robot"
-BACKGROUND_TEXTURES_PATH = assets_path() / "textures" / "background"
+TEXTURES_PATH = assets_path() / "textures" / "table"
 
 
 class TableScene(Scene):
@@ -219,11 +217,7 @@ class TableScene(Scene):
         self._table = table
 
     def load_textures(self, np_random):
-        self._modder._textures["table"] = load_textures(TABLE_TEXTURES_PATH, np_random)
-        self._modder._textures["robot"] = load_textures(ROBOT_TEXTURES_PATH, np_random)
-        self._modder._textures["background"] = load_textures(
-            BACKGROUND_TEXTURES_PATH, np_random, max_number=400
-        )
+        self._modder._textures = load_textures(TEXTURES_PATH, np_random)
 
     def _step(self, dt):
         self._robot.arm.controller.step(dt)
