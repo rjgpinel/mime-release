@@ -20,7 +20,7 @@ from mime.config import assets_path
 
 
 CAMERA_CFG_PATH = assets_path() / "prl_ur5" / "camera_setup.yml"
-TEXTURES_PATH = assets_path() / "textures" / "table"
+TEXTURES_PATH = assets_path() / "textures"
 
 
 class TableScene(Scene):
