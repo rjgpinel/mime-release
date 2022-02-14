@@ -73,8 +73,16 @@ class GripperPositionController(object):
 class RG6GripperController(object):
     def __init__(self, gripper):
         self._gripper = gripper
-        self._velocity = 2
-        self._force = 10.0
+        self._velocity = 1.055
+        # Max Velocity
+        # self._max_velocity = 1.6
+        # self._max_force = 120.0
+        # Min Velocity
+        # self._max_velocity = 0.51
+        # self._max_force = 25.0
+        self._max_velocity = 1.055
+        self._force = 72.5
+        self._max_force = 72.5
         self._gain = 1.0
         self._blocked_moment = 0.1
         self._kinematic_grasp = True
@@ -132,9 +140,9 @@ class RG6GripperController(object):
     @property
     def state(self):
         if self._state == GraspState.Opened:
-            return 2
+            return self._max_velocity
         elif self._state == GraspState.Closed:
-            return -2
+            return -self._max_velocity
         else:
             return self._target_velocity
 

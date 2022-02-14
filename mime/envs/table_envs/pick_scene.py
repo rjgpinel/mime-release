@@ -8,8 +8,6 @@ from ..script import Script
 from mime.config import assets_path
 from .utils import load_textures
 
-OBJ_TEXTURES_PATH = assets_path() / "textures" / "objects" / "simple"
-
 
 class PickScene(TableScene):
     def __init__(self, **kwargs):
@@ -27,7 +25,6 @@ class PickScene(TableScene):
 
     def load_textures(self, np_random):
         super().load_textures(np_random)
-        self._modder._textures["objects"] = load_textures(OBJ_TEXTURES_PATH, np_random)
 
     def reset(
         self,
@@ -89,7 +86,7 @@ class PickScene(TableScene):
         if cubes_color is None:
             colors = np.array(
                 [
-                    [234, 104, 135, 255],
+                    # [234, 104, 135, 255],
                     [128, 196, 99, 255],
                 ],
                 dtype=float,

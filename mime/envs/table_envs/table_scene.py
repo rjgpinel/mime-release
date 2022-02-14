@@ -46,8 +46,9 @@ class TableScene(Scene):
         self._workspace = [[0.25, -0.3, 0.02], [0.8, 0.3, 0.3]]
 
         self._max_tool_velocity = (0.05, 0.25)
-        self._max_gripper_velocity = 2.0
-        self._max_gripper_force = 5.0
+        # Average Velocity
+        self._max_gripper_velocity = 1.055
+        self._max_gripper_force = 72.5
         self._arm_dof = arm_dof
 
         self._robot_type = robot_type
@@ -194,13 +195,15 @@ class TableScene(Scene):
 
             self._safe_height = [0.08, 0.15]
 
-            # self._workspace = [[-0.75, -0.05, 0.0], [0.15, 0.22, 0.3]]
-            # self._workspace = [[-0.6, -0.1, 0.02], [-0.1, 0.22, 0.3]]
             self._workspace = [[-0.62, -0.15, 0.00], [-0.22, 0.22, 0.2]]
             self._controller_workspace = [[-0.7, -0.25, 0.00], [-0.15, 0.3, 0.2]]
-            # self._workspace = [[-0.5, -0.05, 0.0], [0.15, 0.22, 0.3]]
             self._object_workspace = [[-0.62, -0.15, 0.0], [-0.22, 0.22, 0.2]]
             self._robot.arm.controller.workspace = self._controller_workspace
+
+            self._max_gripper_velocity = (
+                self._robot._gripper._controller._max_velocity
+            ) = 1.055
+            self._max_gripper_force = self._robot._gripper._controller._max_force
 
             self._modder._cage_urdf = "prl_ur5/cage.urdf"
 
