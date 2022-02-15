@@ -45,6 +45,7 @@ class TableModder(object):
     def randomize_object_color(self, np_random, obj, obj_color):
         r, g, b = obj_color[:3]
         h, s, v = rgb_to_hsv(r, g, b)
+        h = h + np_random.uniform(low=-0.1, high=0.1)
         if h < 0:
             h = 1 + h
         s, v = np_random.uniform(low=0.5, high=1, size=(2,))
