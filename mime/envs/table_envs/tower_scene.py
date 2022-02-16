@@ -131,7 +131,7 @@ class TowerScene(TableScene):
                 sc.tool_move(arm, pick_pos + [0, 0, place_height] + z_offset),
                 sc.tool_move(arm, tower_pos + [0, 0, place_height] + z_offset),
                 sc.grip_open(grip),
-                sc.tool_move(arm, tower_pos + [0, 0, place_height]),
+                sc.tool_move(arm, tower_pos + [0, 0, place_height + pick_cube_size]),
             ]
 
         return moves
