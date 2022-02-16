@@ -115,21 +115,23 @@ class TowerScene(TableScene):
         cubes_pos = self.cubes_position
         cubes_size = self._cubes_size
         tower_pos = cubes_pos[0]
-        height = 0
+        tower_height = 0
 
         sc = Script(self)
         moves = []
-        z_offset = 0.02
-        for pick_pos, cube_size in zip(cubes_pos[1:], cubes_size[:-1]):
-            height += cube_size
+        z_offset = np.array([0.0, 0.0, 0.02])
+        for pick_pos, placed_cube_size in zip(cubes_pos[1:], cubes_size[:-1]):
+            tower_height += placed_cube_size
+            pick_cube_size = pick_pos[-1] / 2
+            place_height = tower_height + pick_cube_size
             moves += [
                 sc.tool_move(arm, pick_pos + [0, 0, 0.1]),
-                sc.tool_move(arm, pick_pos + [0, 0, z_offset]),
+                sc.tool_move(arm, pick_pos + z_offset),
                 sc.grip_close(grip),
-                sc.tool_move(arm, pick_pos + [0, 0, height + z_offset * 1.5]),
-                sc.tool_move(arm, tower_pos + [0, 0, height + z_offset * 1.5]),
+                sc.tool_move(arm, pick_pos + [0, 0, place_height] + z_offset),
+                sc.tool_move(arm, tower_pos + [0, 0, place_height] + z_offset),
                 sc.grip_open(grip),
-                sc.tool_move(arm, tower_pos + [0, 0, height + cube_size]),
+                sc.tool_move(arm, tower_pos + [0, 0, place_height]),
             ]
 
         return moves
