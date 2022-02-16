@@ -49,7 +49,6 @@ class TableModder(object):
         if h < 0:
             h = 1 + h
         s, v = np_random.uniform(low=0.5, high=1, size=(2,))
-        h = h + np_random.uniform(low=-0.1, high=0.1)
         r, g, b = hsv_to_rgb(h, s, v)
         obj.color = np.array([r, g, b, 1.0])
 
