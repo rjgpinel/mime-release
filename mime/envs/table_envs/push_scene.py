@@ -21,6 +21,7 @@ class PushScene(TableScene):
     def __init__(self, **kwargs):
         super(PushScene, self).__init__(**kwargs)
         self._target = None
+        self._marker = None
 
         # linear velocity x2 for the real setup
         v, w = self._max_tool_velocity
@@ -40,7 +41,7 @@ class PushScene(TableScene):
         else:
             raise ValueError(f"Target Type {self._target_type} is not valid.")
 
-        self._marker_size_range = 0.04
+        self._marker_size_range = {"low": 0.035, "high": 0.045}
         self._success_distance = 0.02
 
     def load(self, np_random):
@@ -53,12 +54,23 @@ class PushScene(TableScene):
     def reset(
         self,
         np_random,
+        **kwargs,
     ):
         """
         Reset the target and arm position.
         """
 
         super(PushScene, self).reset(np_random)
+
+        target_size = kwargs.get("target_size", None)
+        target_type = kwargs.get("target_type", self._target_type)
+        target_position = kwargs.get("target_position", None)
+        target_color = kwargs.get("target_color", None)
+        marker_size = kwargs.get("marker_size", None)
+        marker_position = kwargs.get("marker_position", None)
+        marker_color = kwargs.get("marker_color", None)
+        gripper_position = kwargs.get("gripper_position", None)
+
         modder = self._modder
 
         # load and randomize cage
@@ -66,71 +78,115 @@ class PushScene(TableScene):
         if self._domain_rand:
             modder.randomize_cage_visual(np_random)
 
+        self._object_workspace = [[-0.62, -0.15, 0.0], [-0.42, 0.22, 0.2]]
+        self._marker_workspace = [[-0.42, -0.15, 0.0], [-0.22, 0.22, 0.2]]
+
         # define workspace, tool position and cylinder position
-        low, high = self._object_workspace
-        low, high = np.array(low.copy()), np.array(high.copy())
+        low_object, high_object = self._object_workspace
+        low_object, high_object = np.array(low_object.copy()), np.array(
+            high_object.copy()
+        )
+        low_marker, high_marker = self._marker_workspace
+        low_marker, high_marker = np.array(low_marker.copy()), np.array(
+            high_marker.copy()
+        )
 
         if self._target is not None:
             self._target.remove()
 
+        if self._marker is not None:
+            self._marker.remove()
+
         # load cube, set to random size and random position
-        if self._target_type == Target.CUBE:
-            target, target_size = modder.load_mesh(
-                "cube", self._cube_size_range, np_random
-            )
+        if target_type == Target.CUBE:
+            if not target_size:
+                target, target_size = modder.load_mesh(
+                    "cube", self._cube_size_range, np_random
+                )
             target_height = target_size
             target_width = target_size * 2
-        elif self._target_type == Target.CYLINDER:
-            target, target_size = modder.load_mesh(
-                "cylinder", self._cylinder_size_range, np_random
-            )
+        elif target_type == Target.CYLINDER:
+            if not target_size:
+                target, target_size = modder.load_mesh(
+                    "cylinder", self._cylinder_size_range, np_random
+                )
             target_height = target_size[1]
             target_width = target_size[0] * 2
         else:
             raise ValueError(f"Target Type {self._target_type} is not valid.")
 
-        target_color = (54.0 / 255.0, 73.0 / 255.0, 150.0 / 255.0, 1.0)
-        target.color = target_color
+        self._target = target
         self._target_height = target_height
         self._target_width = target_width
 
-        low[:2] += self._target_width / 2
-        high[:2] -= self._target_width / 2
+        rand_color = False
+        if not target_color:
+            target_color = np.array([54, 73, 150, 255], dtype=float) / 255
+            rand_color = True
 
-        self._target = target
+        target.color = target_color
+        low_object[:2] += self._target_width / 2
+        high_object[:2] -= self._target_width / 2
 
         # Create Marker
-        valid_conf = False
         marker, marker_size = modder.add_marker(
             "square", self._marker_size_range, np_random
         )
 
+        valid_conf = False
         while not valid_conf:
-            gripper_pos, gripper_orn = self.random_gripper_pose(np_random)
-            marker_pos = np_random.uniform(low=low, high=high)
-            target_pos = np_random.uniform(low=low, high=high)
+            if gripper_position is None:
+                (
+                    sampled_gripper_position,
+                    gripper_orn,
+                ) = self.random_gripper_pose(np_random)
+            else:
+                gripper_orn = [pi, 0, pi / 2]
+
+            if marker_position is None:
+                sampled_marker_position = np_random.uniform(
+                    low=low_marker, high=high_marker
+                )
+            if target_position is None:
+                sampled_target_position = np_random.uniform(
+                    low=low_object, high=high_object
+                )
 
             if (
-                np.linalg.norm(marker_pos[:2] - target_pos[:2])
+                np.linalg.norm(
+                    sampled_marker_position[:2] - sampled_target_position[:2]
+                )
                 >= self._target_width * 2
             ) and np.linalg.norm(
-                gripper_pos[:2] - target_pos[:2]
+                sampled_gripper_position[:2] - sampled_target_position[:2]
             ) >= self._target_width * 1.5:
                 valid_conf = True
+                if marker_position is None:
+                    marker_position = sampled_marker_position
+                if target_position is None:
+                    target_position = sampled_target_position
+                if gripper_position is None:
+                    gripper_position = sampled_gripper_position
 
         q0 = self.robot.arm.controller.joints_target
-        q = self.robot.arm.kinematics.inverse(gripper_pos, gripper_orn, q0)
+        q = self.robot.arm.kinematics.inverse(gripper_position, gripper_orn, q0)
         self.robot.arm.reset(q)
 
-        self._target.position = (target_pos[0], target_pos[1], self._target_height / 2)
+        self._target_position = [
+            target_position[0],
+            target_position[1],
+            self._target_height / 2,
+        ]
+        self._target.position = self._target_position
 
-        marker_pos[2] = 0.0001
-        marker_color = [178 / 255, 0, 0, 1]
+        marker_position[2] = 0.0001
+        marker_color = np.array([178, 0, 0, 255], dtype=float) / 255
         self._marker = marker
-        self._marker.position = marker_pos
-        self._marker_position = marker_pos
+        self._marker.position = marker_position
+        self._marker_position = marker_position
         self._marker.color = marker_color
-        if self._domain_rand:
+        # if self._domain_rand:
+        if rand_color:
             modder.randomize_object_color(np_random, target, target_color)
             modder.randomize_object_color(np_random, marker, marker_color)
 
