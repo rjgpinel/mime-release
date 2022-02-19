@@ -10,8 +10,8 @@ from .chain import Chain
 from .camera import Camera
 from .arm_control import ArmPositionController
 from .universal_robot import UR5Kinematics
-from .gripper import RG6Gripper
-from .gripper_control import RG6GripperController
+from .gripper import RG6Gripper, RG2Gripper
+from .gripper_control import RG6GripperController, RG2GripperController
 from .robotiq_gripper import *
 
 
@@ -60,8 +60,8 @@ class PRLUR5Robot:
 
         gripper = None
         if with_gripper:
-            gripper = RG6Gripper(self._body, prefix="left_")
-            gripper.controller = RG6GripperController(gripper)
+            gripper = RG2Gripper(self._body, prefix="left_")
+            gripper.controller = RG2GripperController(gripper)
 
         self._arm = left_arm
         self._right_arm = right_arm

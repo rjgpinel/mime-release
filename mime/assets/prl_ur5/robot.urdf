@@ -335,17 +335,17 @@
   <link name="left_gripper_bracket">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/single_bracket.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/single_bracket.stl"/>
       </geometry>
       <material name="onrobot/grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/single_bracket.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/single_bracket.stl"/>
       </geometry>
     </collision>
     <inertial>
-      <mass value="0.001"/>
+      <mass value="0.09"/>
       <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
   </link>
@@ -358,31 +358,31 @@
   <link name="left_gripper_body">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/body.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/body.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/body.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/body.stl"/>
       </geometry>
     </collision>
     <inertial>
-      <mass value="0.78"/>
+      <mass value="0.65"/>
       <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
   </link>
   <joint name="left_gripper_body_joint" type="fixed">
     <parent link="left_gripper_bracket"/>
     <child link="left_gripper_body"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.051"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.05"/>
   </joint>
   <!-- grasp frame -->
   <link name="left_gripper_grasp_frame"><inertial><mass value="0.001"/><inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00001"/></inertial></link>
   <joint name="left_gripper_grasp_frame_joint" type="fixed">
     <parent link="left_gripper_body"/>
     <child link="left_gripper_grasp_frame"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.19"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.14"/>
   </joint>
   <!-- origin frame -->
   <link name="left_gripper_finger_1_origin">
@@ -400,13 +400,13 @@
   <link name="left_gripper_finger_1_moment_arm">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/moment_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/moment_arm.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/moment_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/moment_arm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -418,21 +418,21 @@
     <parent link="left_gripper_finger_1_origin"/>
     <child link="left_gripper_finger_1_moment_arm"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.0238 0.0 0.066"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 -0.772 0.0" xyz="-0.017 0.0 0.055"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <dynamics damping="0.5"/>
   </joint>
   <!-- truss bar -->
   <link name="left_gripper_finger_1_truss_arm">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/truss_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/truss_arm.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/truss_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/truss_arm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -444,52 +444,26 @@
     <parent link="left_gripper_finger_1_origin"/>
     <child link="left_gripper_finger_1_truss_arm"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.0105 0.0 0.0891"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
-    <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
-  </joint>
-  <link name="left_gripper_finger_1_safety_shield">
-    <visual>
-      <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/safety_shield.stl"/>
-      </geometry>
-      <material name="onrobot/dark_grey"/>
-    </visual>
-    <collision>
-      <geometry>
-        <!-- <mesh filename="package://onrobot_description/meshes/${model}/collision/safety_shield.stl"/> -->
-        <box size="0.0 0.0 0.0"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.001"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
-    </inertial>
-  </link>
-  <joint name="left_gripper_finger_1_safety_shield_joint" type="revolute">
-    <parent link="left_gripper_finger_1_finger_tip"/>
-    <child link="left_gripper_finger_1_safety_shield"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.00665 0.0 -0.01155"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 -0.772 0.0" xyz="-0.0075 0.0 0.0715"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
   </joint>
   <!-- finger tip -->
   <link name="left_gripper_finger_1_finger_tip">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/finger_tip.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/finger_tip.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/finger_tip_1.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/finger_tip_1.stl"/>
       </geometry>
     </collision>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/finger_tip_2.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/finger_tip_2.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -501,21 +475,21 @@
     <parent link="left_gripper_finger_1_truss_arm"/>
     <child link="left_gripper_finger_1_finger_tip"/>
     <axis xyz="0 -1 0"/>
-    <origin rpy="0.0 0.49 0.0" xyz="-0.05503 0.0 0.05807"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 0.772 0.0" xyz="-0.0256 0.0 0.04868"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
   </joint>
   <!-- flex finger -->
   <link name="left_gripper_finger_1_flex_finger">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/flex_finger.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/flex_finger.stl"/>
       </geometry>
       <material name="onrobot/dark_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/flex_finger.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/flex_finger.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -526,7 +500,7 @@
   <joint name="left_gripper_finger_1_flex_finger_joint" type="fixed">
     <parent link="left_gripper_finger_1_finger_tip"/>
     <child link="left_gripper_finger_1_flex_finger"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0098 0.0 0.0218"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.03059 0.0 0.0172"/>
   </joint>
   <!-- origin frame -->
   <link name="left_gripper_finger_2_origin">
@@ -544,13 +518,13 @@
   <link name="left_gripper_finger_2_moment_arm">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/moment_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/moment_arm.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/moment_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/moment_arm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -562,8 +536,8 @@
     <parent link="left_gripper_finger_2_origin"/>
     <child link="left_gripper_finger_2_moment_arm"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.0238 0.0 0.066"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 -0.772 0.0" xyz="-0.017 0.0 0.055"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <dynamics damping="0.5"/>
     <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
   </joint>
@@ -571,13 +545,13 @@
   <link name="left_gripper_finger_2_truss_arm">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/truss_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/truss_arm.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/truss_arm.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/truss_arm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -589,52 +563,26 @@
     <parent link="left_gripper_finger_2_origin"/>
     <child link="left_gripper_finger_2_truss_arm"/>
     <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.0105 0.0 0.0891"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
-    <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
-  </joint>
-  <link name="left_gripper_finger_2_safety_shield">
-    <visual>
-      <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/safety_shield.stl"/>
-      </geometry>
-      <material name="onrobot/dark_grey"/>
-    </visual>
-    <collision>
-      <geometry>
-        <!-- <mesh filename="package://onrobot_description/meshes/${model}/collision/safety_shield.stl"/> -->
-        <box size="0.0 0.0 0.0"/>
-      </geometry>
-    </collision>
-    <inertial>
-      <mass value="0.001"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
-    </inertial>
-  </link>
-  <joint name="left_gripper_finger_2_safety_shield_joint" type="revolute">
-    <parent link="left_gripper_finger_2_finger_tip"/>
-    <child link="left_gripper_finger_2_safety_shield"/>
-    <axis xyz="0 1 0"/>
-    <origin rpy="0.0 -0.49 0.0" xyz="-0.00665 0.0 -0.01155"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 -0.772 0.0" xyz="-0.0075 0.0 0.0715"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
   </joint>
   <!-- finger tip -->
   <link name="left_gripper_finger_2_finger_tip">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/finger_tip.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/finger_tip.stl"/>
       </geometry>
       <material name="onrobot/light_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/finger_tip_1.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/finger_tip_1.stl"/>
       </geometry>
     </collision>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/finger_tip_2.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/finger_tip_2.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -646,21 +594,21 @@
     <parent link="left_gripper_finger_2_truss_arm"/>
     <child link="left_gripper_finger_2_finger_tip"/>
     <axis xyz="0 -1 0"/>
-    <origin rpy="0.0 0.49 0.0" xyz="-0.05503 0.0 0.05807"/>
-    <limit effort="10.0" lower="0.0" upper="1.3" velocity="2.4"/>
+    <origin rpy="0.0 0.772 0.0" xyz="-0.0256 0.0 0.04868"/>
+    <limit effort="2.2" lower="0.0" upper="1.3" velocity="0.5"/>
     <mimic joint="left_gripper_joint" multiplier="1" offset="0"/>
   </joint>
   <!-- flex finger -->
   <link name="left_gripper_finger_2_flex_finger">
     <visual>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/visual/flex_finger.stl"/>
+        <mesh filename="./meshes/rg2_v1/visual/flex_finger.stl"/>
       </geometry>
       <material name="onrobot/dark_grey"/>
     </visual>
     <collision>
       <geometry>
-        <mesh filename="./meshes/rg6_v1/collision/flex_finger.stl"/>
+        <mesh filename="./meshes/rg2_v1/collision/flex_finger.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -671,11 +619,11 @@
   <joint name="left_gripper_finger_2_flex_finger_joint" type="fixed">
     <parent link="left_gripper_finger_2_finger_tip"/>
     <child link="left_gripper_finger_2_flex_finger"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0098 0.0 0.0218"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.03059 0.0 0.0172"/>
   </joint>
   <!-- camera body, with origin at bottom screw mount -->
   <joint name="left_camera_joint" type="fixed">
-    <origin rpy="-1.57 -1.57 0.0" xyz="0.0 0.02 0.15"/>
+    <origin rpy="-1.57 -1.57 0.0" xyz="0.0 0.01 0.13"/>
     <parent link="left_tool"/>
     <child link="left_camera_bottom_screw_frame"/>
   </joint>
