@@ -156,7 +156,7 @@ class TableModder(object):
             marker = Body.mesh(
                 "plane.obj",
                 self.scene.client_id,
-                scale=[marker_size, marker_size, 1],
+                scale=[marker_size / 2, marker_size / 2, 1],
                 egl=self.scene._load_egl,
             )
         else:

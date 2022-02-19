@@ -31,7 +31,7 @@ class PushScene(TableScene):
 
         if self._target_type == Target.CYLINDER:
             radius_range = {"low": 0.03, "high": 0.07}
-            height_range = {"low": 0.05, "high": 0.07}
+            height_range = {"low": 0.05, "high": 0.09}
             self._cylinder_size_range = {
                 "low": [radius_range["low"], height_range["low"]],
                 "high": [radius_range["high"], height_range["high"]],
@@ -41,7 +41,7 @@ class PushScene(TableScene):
         else:
             raise ValueError(f"Target Type {self._target_type} is not valid.")
 
-        self._marker_size_range = {"low": 0.035, "high": 0.045}
+        self._marker_size_range = {"low": 0.075, "high": 0.085}
         self._success_distance = 0.02
 
     def load(self, np_random):
@@ -64,6 +64,9 @@ class PushScene(TableScene):
 
         target_size = kwargs.get("target_size", None)
         target_type = kwargs.get("target_type", self._target_type)
+        if type(target_type) is int:
+            target_type = Target(target_type)
+
         target_position = kwargs.get("target_position", None)
         target_color = kwargs.get("target_color", None)
         marker_size = kwargs.get("marker_size", None)
@@ -78,8 +81,9 @@ class PushScene(TableScene):
         if self._domain_rand:
             modder.randomize_cage_visual(np_random)
 
+        self._safe_height = [0.12, 0.15]
         self._object_workspace = [[-0.62, -0.15, 0.0], [-0.42, 0.22, 0.2]]
-        self._marker_workspace = [[-0.42, -0.15, 0.0], [-0.22, 0.22, 0.2]]
+        self._marker_workspace = [[-0.35, -0.10, 0.0], [-0.22, 0.10, 0.2]]
 
         # define workspace, tool position and cylinder position
         low_object, high_object = self._object_workspace
@@ -103,12 +107,18 @@ class PushScene(TableScene):
                 target, target_size = modder.load_mesh(
                     "cube", self._cube_size_range, np_random
                 )
+            else:
+                target, target_size = modder.load_mesh("cube", target_size, np_random)
             target_height = target_size
             target_width = target_size * 2
         elif target_type == Target.CYLINDER:
             if not target_size:
                 target, target_size = modder.load_mesh(
                     "cylinder", self._cylinder_size_range, np_random
+                )
+            else:
+                target, target_size = modder.load_mesh(
+                    "cylinder", target_size, np_random
                 )
             target_height = target_size[1]
             target_width = target_size[0] * 2
@@ -119,10 +129,13 @@ class PushScene(TableScene):
         self._target_height = target_height
         self._target_width = target_width
 
-        rand_color = False
-        if not target_color:
-            target_color = np.array([54, 73, 150, 255], dtype=float) / 255
-            rand_color = True
+        rand_color_target = False
+        if target_color is None:
+            target_color = np.array([27, 79, 119, 255], dtype=float) / 255
+            rand_color_target = True
+
+        if rand_color_target:
+            modder.randomize_object_color(np_random, target, target_color)
 
         target.color = target_color
         low_object[:2] += self._target_width / 2
@@ -141,16 +154,22 @@ class PushScene(TableScene):
                     gripper_orn,
                 ) = self.random_gripper_pose(np_random)
             else:
+                sampled_gripper_position = gripper_position
                 gripper_orn = [pi, 0, pi / 2]
 
             if marker_position is None:
                 sampled_marker_position = np_random.uniform(
                     low=low_marker, high=high_marker
                 )
+            else:
+                sampled_marker_position = marker_position
+
             if target_position is None:
                 sampled_target_position = np_random.uniform(
                     low=low_object, high=high_object
                 )
+            else:
+                sampled_target_position = target_position
 
             if (
                 np.linalg.norm(
@@ -180,14 +199,17 @@ class PushScene(TableScene):
         self._target.position = self._target_position
 
         marker_position[2] = 0.0001
-        marker_color = np.array([178, 0, 0, 255], dtype=float) / 255
+
+        rand_color_marker = False
+        if marker_color is None:
+            marker_color = np.array([153, 51, 26, 255], dtype=float) / 255
+            rand_color_marker = True
         self._marker = marker
         self._marker.position = marker_position
         self._marker_position = marker_position
         self._marker.color = marker_color
         # if self._domain_rand:
-        if rand_color:
-            modder.randomize_object_color(np_random, target, target_color)
+        if rand_color_marker:
             modder.randomize_object_color(np_random, marker, marker_color)
 
     def script(self):
@@ -210,11 +232,8 @@ class PushScene(TableScene):
             / (np.linalg.norm(ref_v) * np.linalg.norm(push_norm_v))
         )
 
-        print(f"Push Angle {push_angle}")
-        print(f"Norm V {push_norm_v}")
         push_angle = push_angle if push_norm_v[0] * push_norm_v[1] > 0 else -push_angle
 
-        print(f"After Push Angle {push_angle}")
         init_push_xy = target_pos[:2] - push_norm_v * self._target_width
         init_push_pos = np.array(
             [init_push_xy[0], init_push_xy[1], self._target_height]

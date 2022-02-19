@@ -34,7 +34,7 @@ from mime.config import assets_path
 def main(episodes, initial_episode, num_cubes, output_path):
     output_path = Path(output_path)
     output_path.mkdir(parents=True, exist_ok=True)
-    with open(str(assets_path() / "cubes_spec.yml"), "rb") as f:
+    with open(str(assets_path() / "cubes_specs.yml"), "rb") as f:
         cubes_conf = yaml.load(f, Loader=yaml.FullLoader)
 
     env = gym.make("PRL_UR5-EGL-TowerCamEnv-v0")
